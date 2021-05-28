@@ -10,7 +10,7 @@ $data = file_get_contents($fileName);
 $bookList = json_decode($data, true);
 
 /*********************************
- * Traitement du formulaire 
+ * Traitement du formulaire
  * d'ajout de livre
  *********************************/
 // vérification de l'envoi des données
@@ -20,36 +20,34 @@ $isPosted = filter_has_var(INPUT_POST, "submit");
 $errors = [];
 $hasErrors = false;
 
-if($isPosted){
+if ($isPosted) {
     // Récupération de la saisie
     $title = filter_input(INPUT_POST, "title", FILTER_SANITIZE_STRING);
     $author = filter_input(INPUT_POST, "author", FILTER_SANITIZE_STRING);
     $publisher = filter_input(INPUT_POST, "publisher", FILTER_SANITIZE_STRING);
 
-    //Todo : Faire la validation de la saisie
-
     // Validation de la saisie
     // avec remplissage d'un tableau des erreurs
-    if(empty($title)){
+    if (empty($title)) {
         // Equivalent de aray_push
         $errors[] = "Vous devez saisir le titre";
     }
-    if(empty($author)){
+    if (empty($author)) {
         $errors[] = "Vous devez saisir l'auteur";
     }
-    if(empty($publisher)){
+    if (empty($publisher)) {
         $errors[] = "Vous devez saisir l'éditeur";
     }
 
     $hasErrors = count($errors) > 0;
 
     // si le nombre d'erreur est zéro on continue
-    if(! $hasErrors){
+    if (!$hasErrors) {
         // Création d'un tableau à partir de la saisie
         $newBook = [
             "title" => $title,
             "author" => $author,
-            "publisher" => $publisher
+            "publisher" => $publisher,
         ];
 
         // Ajout du nouveau à $bookList
@@ -65,7 +63,7 @@ if($isPosted){
         header("location:index.php");
         exit;
     }
-    
+
 }
 
 ?>
@@ -78,6 +76,40 @@ if($isPosted){
     <title>Bibliothèque</title>
     <link   rel="stylesheet"
             href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script>
+        // Exécution du code uniquement quand le DOM est chargé
+        $(document).ready(function(){
+            // ciblage du conteneur du formulaire
+            const formDiv = $("#formDiv");
+            // ciblage du bouton d'affichage du formulaire
+            const formDivButton = $("#showFormButton");
+
+            <?php if($hasErrors): ?>
+                formDivButton.text("Masquer le formulaire");
+            <?php else: ?>    
+                // masquage du formulaire
+                formDiv.hide();
+            <?php endif ?>
+
+            // action sur le clic sur le bouton showFormButton
+            formDivButton.on("click", function(){
+                // Affichage ou masquage du formulaire
+                formDiv.toggle(500);
+                // Changement du texte du bouton
+                if(formDivButton.text() == "Masquer le formulaire" ){
+                    formDivButton.text("Afficher le formulaire");
+                } else {
+                    formDivButton.text("Masquer le formulaire");
+                }
+            });
+
+            // Fermeture du message d'erreur
+            $("#closeErrorButton").on("click", function(){
+                $("#errorMessage").hide(400);
+            });
+        });
+    </script>
 
 </head>
 <body class="container-fluid">
@@ -85,21 +117,49 @@ if($isPosted){
         <div class="col-md-8 bg-danger">
             <h1>Liste des livres</h1>
 
+            <!-- Affichage des erreurs éventuelles -->
+            <?php if ($hasErrors): ?>
+                <div class="alert alert-danger" id="errorMessage"> 
+                    <!-- Bouton pour fermer le message d'erreur -->
+                    <button type="button" class="btn-close" id="closeErrorButton"></button>
+
+                    <h3>Il y a des erreurs</h3>
+                    <!-- boucle pour afficher les erreurs -->
+                    <ul>
+                        <?php foreach ($errors as $message): ?>
+                            <li> <?=$message?> </li>
+                        <?php endforeach?>
+                    </ul>
+
+                </div>
+            <?php endif?>
+
+            <!-- bouton pour afficher le formulaire -->
+            <div class="mt-3 mb-2">
+                <button type="button" id="showFormButton"
+                        class="btn btn-primary">
+                    Afficher le formulaire
+                </button>
+            </div>
+
             <!-- formulaire de création d'un livre -->
-            <div class="m-3">
+            <div class="m-3" id="formDiv">
                 <h2>Nouveau livre</h2>
                 <form method="post">
                     <div class="mb-2">
                         <label class="form-label">Titre</label>
-                        <input type="text" name="title" class="form-control">
+                        <input type="text" name="title" class="form-control"
+                        value="<?=$hasErrors ? $title : ""?>" >
                     </div>
                     <div class="mb-2">
                         <label class="form-label">Auteur</label>
-                        <input type="text" name="author" class="form-control">
+                        <input type="text" name="author" class="form-control"
+                        value="<?=$hasErrors ? $author : ""?>" >
                     </div>
                     <div class="mb-2">
                         <label class="form-label">Editeur</label>
-                        <input type="text" name="publisher" class="form-control">
+                        <input type="text" name="publisher" class="form-control"
+                        value="<?=$hasErrors ? $publisher : ""?>" >
                     </div>
                     <div class="text-center">
                         <button type="submit" name="submit" class="btn btn-primary btn-lg w-50">
@@ -117,6 +177,7 @@ if($isPosted){
                     <th>Titre</th>
                     <th>Auteur</th>
                     <th>Editeur</th>
+                    <th></th>
                </tr>
                <!--
                     Boucle sur $bookList
@@ -127,6 +188,9 @@ if($isPosted){
                             <td><?=$book["title"]?></td>
                             <td><?=$book["author"]?></td>
                             <td><?=$book["publisher"]?></td>
+                            <td>
+                                <a href="delete.php" class="btn btn-warning delete">supprimer</a>
+                            </td>
                     </tr>
                <?php endforeach?>
 
