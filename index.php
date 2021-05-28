@@ -45,6 +45,7 @@ if ($isPosted) {
     if (!$hasErrors) {
         // Création d'un tableau à partir de la saisie
         $newBook = [
+            "id" => uniqid(),
             "title" => $title,
             "author" => $author,
             "publisher" => $publisher,
@@ -107,6 +108,11 @@ if ($isPosted) {
             // Fermeture du message d'erreur
             $("#closeErrorButton").on("click", function(){
                 $("#errorMessage").hide(400);
+            });
+
+            // Confirmation avant suppression
+            $(".delete").on("click", function(){
+                return confirm("voulez-vous vraiment supprimer ce livre ?");
             });
         });
     </script>
@@ -189,7 +195,7 @@ if ($isPosted) {
                             <td><?=$book["author"]?></td>
                             <td><?=$book["publisher"]?></td>
                             <td>
-                                <a href="delete.php" class="btn btn-warning delete">supprimer</a>
+                                <a href="delete.php?id=<?= $book["id"] ?>" class="btn btn-warning delete">supprimer</a>
                             </td>
                     </tr>
                <?php endforeach?>
